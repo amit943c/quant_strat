@@ -33,6 +33,7 @@ class Backtester:
         position = price["position"].fillna(0)
         trade_change = position.diff().abs().fillna(0)
         cost = trade_change * (self.fee_rate + self.slippage_rate)
+        # Support long (+1), short (-1), flat (0)
         strategy_returns = position.shift(1).fillna(0) * raw_returns - cost
 
         equity_curve = (1 + strategy_returns).cumprod() * self.initial_capital

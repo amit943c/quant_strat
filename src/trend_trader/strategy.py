@@ -14,8 +14,11 @@ class MovingAverageTrendStrategy:
         price["fast_ma"] = price["Close"].rolling(self.fast_window).mean()
         price["slow_ma"] = price["Close"].rolling(self.slow_window).mean()
         price["atr"] = self._atr(price, window=self.atr_window)
-        price["trend"] = (price["fast_ma"] > price["slow_ma"]).astype(int)
-        price["position"] = price["trend"].where(price["fast_ma"].notna() & price["slow_ma"].notna(), 0)
+        # Long if fast > slow, short if fast < slow, flat if equal
+        price["position"] = 0
+        price.loc[price["fast_ma"] > price["slow_ma"], "position"] = 1
+        price.loc[price["fast_ma"] < price["slow_ma"], "position"] = -1
+        price.loc[~(price["fast_ma"].notna() & price["slow_ma"].notna()), "position"] = 0
         # trailing stop based on ATR
         price["stop"] = price["Close"] - price["atr"] * self.atr_mult
         return price[["Date", "position", "stop", "fast_ma", "slow_ma", "atr"]]
