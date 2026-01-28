@@ -21,7 +21,11 @@ class MovingAverageTrendStrategy:
         price.loc[~(price["fast_ma"].notna() & price["slow_ma"].notna()), "position"] = 0
         # trailing stop based on ATR
         price["stop"] = price["Close"] - price["atr"] * self.atr_mult
-        return price[["Date", "position", "stop", "fast_ma", "slow_ma", "atr"]]
+        # Add more signal/stat columns
+        price["ma_diff"] = price["fast_ma"] - price["slow_ma"]
+        price["signal_change"] = price["position"].diff().fillna(0)
+        price["volatility_20"] = price["Close"].rolling(20).std()
+        return price[["Date", "position", "stop", "fast_ma", "slow_ma", "atr", "ma_diff", "signal_change", "volatility_20"]]
 
     @staticmethod
     def _atr(df: pd.DataFrame, window: int) -> pd.Series:

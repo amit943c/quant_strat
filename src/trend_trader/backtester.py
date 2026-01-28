@@ -40,6 +40,17 @@ class Backtester:
 
         trades = self._extract_trades(price)
         stats = summary_stats(equity_curve, strategy_returns, periods_per_year=self.periods_per_year)
+
+        # Add more stats output
+        stats["final_equity"] = equity_curve.iloc[-1]
+        stats["total_trades"] = len(trades)
+        stats["avg_trade_return"] = trades["return"].mean() if not trades.empty else 0.0
+        stats["avg_trade_duration"] = trades["bars_held"].mean() if not trades.empty else 0.0
+        stats["win_rate"] = (trades["return"] > 0).mean() if not trades.empty else 0.0
+        stats["loss_rate"] = (trades["return"] < 0).mean() if not trades.empty else 0.0
+        stats["best_trade"] = trades["return"].max() if not trades.empty else 0.0
+        stats["worst_trade"] = trades["return"].min() if not trades.empty else 0.0
+
         return BacktestResult(equity_curve=equality_safe(equity_curve), returns=strategy_returns, trades=trades, stats=stats)
 
     def _extract_trades(self, price: pd.DataFrame) -> pd.DataFrame:
